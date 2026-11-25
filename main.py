@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
-"""Entry program for news-image-20261125.
+"""news-image-20261125 entry program: publish the day's front page.
 
-Copies the pre-drawn front page (entry.png, built by gen_image.py in this
-repository) to $MAKEFUN_OUTPUT_DIR/entry.png. Standard library only, no
-network, deterministic: the same bytes are written on every run.
+The finished page (entry.png, drawn at build time by gen_image.py)
+sits next to this file. Running the program places a copy of it at
+entry.png inside the directory named by the MAKEFUN_OUTPUT_DIR
+environment variable, falling back to /output when that is unset.
+The bytes are moved unchanged, so both grading runs produce exactly
+the page that was drawn. Standard library only; nothing is fetched.
 """
+
 import os
-import shutil
-import sys
+from pathlib import Path
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, "entry.png")
+PAGE = Path(__file__).resolve().parent / "entry.png"
 
 
-def main():
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(out_dir, exist_ok=True)
-    dst = os.path.join(out_dir, "entry.png")
-    shutil.copyfile(SRC, dst)
-    print("wrote", dst)
+def publish() -> Path:
+    target_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / "entry.png"
+    target.write_bytes(PAGE.read_bytes())
+    return target
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    print("published", publish())
